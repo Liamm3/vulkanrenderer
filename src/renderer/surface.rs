@@ -1,7 +1,7 @@
 use ash::vk;
 
 pub struct Surface {
-    _xlib_surface_loader: ash::extensions::khr::XlibSurface,
+    xlib_surface_loader: ash::extensions::khr::XlibSurface,
     pub surface: vk::SurfaceKHR,
     surface_loader: ash::extensions::khr::Surface,
 }
@@ -18,13 +18,13 @@ impl Surface {
         let x11_create_info = vk::XlibSurfaceCreateInfoKHR::builder()
             .window(x11_window)
             .dpy(x11_display as *mut vk::Display);
-        let _xlib_surface_loader = ash::extensions::khr::XlibSurface::new(entry, instance);
+        let xlib_surface_loader = ash::extensions::khr::XlibSurface::new(entry, instance);
         let surface = unsafe {
-            _xlib_surface_loader.create_xlib_surface(&x11_create_info, None)
+            xlib_surface_loader.create_xlib_surface(&x11_create_info, None)
         }?;
         let surface_loader = ash::extensions::khr::Surface::new(entry, instance);
-        Ok(Surface{
-            _xlib_surface_loader,
+        Ok(Surface {
+            xlib_surface_loader,
             surface,
             surface_loader,
         })

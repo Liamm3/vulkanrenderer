@@ -28,13 +28,19 @@ pub struct VulkanRenderer {
 }
 
 impl VulkanRenderer {
+    fn used_layer_names() -> Vec<std::ffi::CString> {
+        vec![
+            std::ffi::CString::new("VK_LAYER_KHRONOS_validation").unwrap()
+        ]
+    }
+
     pub fn init(
         window: winit::window::Window,
     ) -> Result<VulkanRenderer, Box<dyn std::error::Error>> {
         let entry = ash::Entry::new()?;
         let layer_names = vec!["VK_LAYER_KHRONOS_validation"];
         let instance = Self::init_instance(&entry, &layer_names)?;
-        let debug = Debug::init(&entry, &instance)?;
+        let debug = Debug::new(&entry, &instance)?;
         let surfaces = Surface::init(&window, &entry, &instance)?;
         let device = Device::init(&instance, &layer_names)?;
         let mut swapchain = Swapchain::init(

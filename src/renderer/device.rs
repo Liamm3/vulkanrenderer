@@ -39,7 +39,6 @@ impl QueueFamilies {
     }
 }
 
-
 pub struct Device {
     pub physical_device: vk::PhysicalDevice,
     pub logical_device: ash::Device,
