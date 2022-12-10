@@ -105,7 +105,6 @@ impl Device {
         let phys_devs = unsafe { instance.enumerate_physical_devices()? };
         let mut chosen = None;
         for p in phys_devs {
-            let properties = unsafe { instance.get_physical_device_properties(p) };
             chosen = Some(p);
             break;
         }

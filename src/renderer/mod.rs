@@ -44,7 +44,6 @@ impl VulkanRenderer {
         )?;
         let renderpass = Self::init_renderpass(
             &device.logical_device, 
-            device.physical_device, 
             swapchain.surface_format.format
         )?;
         swapchain.create_framebuffer(&device.logical_device, renderpass)?;
@@ -110,7 +109,6 @@ impl VulkanRenderer {
 
     fn init_renderpass(
         logical_device: &ash::Device,
-        physical_device: vk::PhysicalDevice,
         format: vk::Format,
     ) -> Result<vk::RenderPass, vk::Result> {
         let attachments = [vk::AttachmentDescription::builder()

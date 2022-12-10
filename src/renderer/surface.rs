@@ -1,7 +1,7 @@
 use ash::vk;
 
 pub struct Surface {
-    xlib_surface_loader: ash::extensions::khr::XlibSurface,
+    _xlib_surface_loader: ash::extensions::khr::XlibSurface,
     pub surface: vk::SurfaceKHR,
     surface_loader: ash::extensions::khr::Surface,
 }
@@ -18,13 +18,13 @@ impl Surface {
         let x11_create_info = vk::XlibSurfaceCreateInfoKHR::builder()
             .window(x11_window)
             .dpy(x11_display as *mut vk::Display);
-        let xlib_surface_loader = ash::extensions::khr::XlibSurface::new(entry, instance);
+        let _xlib_surface_loader = ash::extensions::khr::XlibSurface::new(entry, instance);
         let surface = unsafe {
-            xlib_surface_loader.create_xlib_surface(&x11_create_info, None)
+            _xlib_surface_loader.create_xlib_surface(&x11_create_info, None)
         }?;
         let surface_loader = ash::extensions::khr::Surface::new(entry, instance);
         Ok(Surface{
-            xlib_surface_loader,
+            _xlib_surface_loader,
             surface,
             surface_loader,
         })
@@ -59,21 +59,8 @@ impl Surface {
                 .get_physical_device_surface_formats(physical_device, self.surface)
         }
     }
-
-    fn get_physical_device_surface_support(
-        &self,
-        physical_device: vk::PhysicalDevice,
-        queuefamilyindex: usize,
-    ) -> Result<bool, vk::Result> {
-        unsafe {
-            self.surface_loader.get_physical_device_surface_support(
-                physical_device,
-                queuefamilyindex as u32,
-                self.surface,
-            )
-        }
-    }
 }
+
 impl Drop for Surface {
     fn drop(&mut self) {
         unsafe {
