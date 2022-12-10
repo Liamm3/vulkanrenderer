@@ -1,4 +1,4 @@
-use ash::{version::DeviceV1_0, vk};
+use ash::vk;
 use crate::renderer::swapchain::Swapchain;
 
 pub struct Pipeline {

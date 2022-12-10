@@ -1,6 +1,6 @@
 mod renderer;
 
-use ash::{version::DeviceV1_0, vk};
+use ash::vk;
 use renderer::VulkanRenderer;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

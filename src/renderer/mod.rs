@@ -5,7 +5,7 @@ pub mod surface;
 pub mod command_pools;
 pub mod device;
 
-use ash::{vk, version::{InstanceV1_0, DeviceV1_0, EntryV1_0}};
+use ash::vk;
 use debug::Debug;
 use swapchain::Swapchain;
 use pipeline::Pipeline;
@@ -34,15 +34,27 @@ impl VulkanRenderer {
         ]
     }
 
+    fn used_extensions() -> Vec<*const i8> {
+        vec![
+            ash::extensions::ext::DebugUtils::name().as_ptr(),
+            ash::extensions::khr::Surface::name().as_ptr(),
+            ash::extensions::khr::XlibSurface::name().as_ptr(),
+        ]
+    }
+
     pub fn init(
         window: winit::window::Window,
     ) -> Result<VulkanRenderer, Box<dyn std::error::Error>> {
-        let entry = ash::Entry::new()?;
-        let layer_names = vec!["VK_LAYER_KHRONOS_validation"];
-        let instance = Self::init_instance(&entry, &layer_names)?;
+        let entry = ash::Entry::linked();
+        let used_layer_names = Self::used_layer_names();
+        let used_layers = used_layer_names.iter()
+            .map(|layer_name| layer_name.as_ptr())
+            .collect();
+        let used_extensions = Self::used_extensions();
+        let instance = Self::create_instance(&entry, &used_layers, &used_extensions)?;
         let debug = Debug::new(&entry, &instance)?;
         let surfaces = Surface::init(&window, &entry, &instance)?;
-        let device = Device::init(&instance, &layer_names)?;
+        let device = Device::init(&instance, &used_layers)?;
         let mut swapchain = Swapchain::init(
             &instance, 
             &surfaces, 
@@ -79,33 +91,19 @@ impl VulkanRenderer {
         })
     }
 
-    fn init_instance(
+    fn create_instance(
         entry: &ash::Entry,
-        layer_names: &[&str]
-    ) -> Result<ash::Instance, ash::InstanceError> {
+        layer_name_pointers: &Vec<*const i8>,
+        extension_name_pointers: &Vec<*const i8>,
+    ) -> Result<ash::Instance, vk::Result> {
         let enginename = std::ffi::CString::new("UnknownGameEngine").unwrap();
         let appname = std::ffi::CString::new("The Black Window").unwrap();
         let app_info = vk::ApplicationInfo::builder()
-            .application_name(&appname)
-            .application_version(vk::make_version(0, 0, 1))
             .engine_name(&enginename)
-            .engine_version(vk::make_version(0, 42, 0))
-            .api_version(vk::make_version(1, 0, 106));
-        let layer_names_c: Vec<std::ffi::CString> = layer_names
-            .iter()
-            .map(|&layer_name| std::ffi::CString::new(layer_name).unwrap())
-            .collect();
-        let layer_name_pointers: Vec<*const i8> = layer_names_c
-            .iter()
-            .map(|layer_name| layer_name.as_ptr())
-            .collect();
-        let extension_name_pointers: Vec<*const i8> = vec![
-            ash::extensions::ext::DebugUtils::name().as_ptr(),
-            ash::extensions::khr::Surface::name().as_ptr(),
-            ash::extensions::khr::XlibSurface::name().as_ptr(),
-        ];
-
-        // Create instance and instance info
+            .application_name(&appname)
+            .application_version(vk::make_api_version(0, 0, 1, 0))
+            .engine_version(vk::make_api_version(0, 0, 1, 0))
+            .api_version(vk::API_VERSION_1_1);
         let instance_create_info = vk::InstanceCreateInfo::builder() 
             .application_info(&app_info)
             .enabled_layer_names(&layer_name_pointers)

@@ -1,4 +1,4 @@
-use ash::{vk, version::{InstanceV1_0, DeviceV1_0}};
+use ash::vk;
 
 pub struct Queues {
     pub graphics_queue: vk::Queue,
@@ -49,18 +49,10 @@ pub struct Device {
 impl Device {
     pub fn init(
         instance: &ash::Instance,
-        layer_names: &[&str],
+        layer_name_pointers: &Vec<*const i8>,
     ) -> Result<Device, vk::Result> {
         let physical_device = Self::get_physical_device(instance)?;
         let queue_families = QueueFamilies::init(instance, physical_device)?;
-        let layer_names_c: Vec<std::ffi::CString> = layer_names
-            .iter()
-            .map(|&layer_name| std::ffi::CString::new(layer_name).unwrap())
-            .collect();
-        let layer_name_pointers: Vec<*const i8> = layer_names_c
-            .iter()
-            .map(|layer_name| layer_name.as_ptr())
-            .collect();
         let priorities = [1.0f32];
         let queue_infos = [
             vk::DeviceQueueCreateInfo::builder()
