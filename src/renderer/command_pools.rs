@@ -8,7 +8,7 @@ pub struct CommandPools {
 }
 
 impl CommandPools {
-    pub fn init(
+    pub fn new(
         logical_device: &ash::Device,
         queue_families: &QueueFamilies,
     ) -> Result<CommandPools, vk::Result> {

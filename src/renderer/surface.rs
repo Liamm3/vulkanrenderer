@@ -7,7 +7,7 @@ pub struct Surface {
 }
 
 impl Surface {
-    pub fn init(
+    pub fn new(
         window: &winit::window::Window,
         entry: &ash::Entry,
         instance: &ash::Instance,

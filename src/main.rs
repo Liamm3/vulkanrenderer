@@ -6,7 +6,7 @@ use renderer::VulkanRenderer;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let eventloop = winit::event_loop::EventLoop::new();
     let window = winit::window::Window::new(&eventloop)?;
-    let mut renderer = VulkanRenderer::init(window)?;
+    let mut renderer = VulkanRenderer::new(window)?;
 
     use winit::event::{Event, WindowEvent};
     eventloop.run(move |event, _, controlflow| match event {

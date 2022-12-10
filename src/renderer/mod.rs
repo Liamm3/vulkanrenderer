@@ -42,7 +42,7 @@ impl VulkanRenderer {
         ]
     }
 
-    pub fn init(
+    pub fn new(
         window: winit::window::Window,
     ) -> Result<VulkanRenderer, Box<dyn std::error::Error>> {
         let entry = ash::Entry::linked();
@@ -53,20 +53,20 @@ impl VulkanRenderer {
         let used_extensions = Self::used_extensions();
         let instance = Self::create_instance(&entry, &used_layers, &used_extensions)?;
         let debug = Debug::new(&entry, &instance)?;
-        let surfaces = Surface::init(&window, &entry, &instance)?;
-        let device = Device::init(&instance, &used_layers)?;
-        let mut swapchain = Swapchain::init(
+        let surfaces = Surface::new(&window, &entry, &instance)?;
+        let device = Device::new(&instance, &used_layers)?;
+        let mut swapchain = Swapchain::new(
             &instance, 
             &surfaces, 
             &device,
         )?;
-        let renderpass = Self::init_renderpass(
+        let renderpass = Self::create_renderpass(
             &device.logical_device, 
             swapchain.surface_format.format
         )?;
         swapchain.create_framebuffer(&device.logical_device, renderpass)?;
-        let pipeline = Pipeline::init(&device.logical_device, &swapchain, &renderpass)?;
-        let command_pools = CommandPools::init(&device.logical_device, &device.queue_families)?;
+        let pipeline = Pipeline::new(&device.logical_device, &swapchain, &renderpass)?;
+        let command_pools = CommandPools::new(&device.logical_device, &device.queue_families)?;
         let commandbuffers =
             CommandPools::create_commandbuffers(&device.logical_device, &command_pools, swapchain.framebuffers.len())?;
         Self::fill_commandbuffers(
@@ -111,7 +111,7 @@ impl VulkanRenderer {
         unsafe { entry.create_instance(&instance_create_info, None) }
     }
 
-    fn init_renderpass(
+    fn create_renderpass(
         logical_device: &ash::Device,
         format: vk::Format,
     ) -> Result<vk::RenderPass, vk::Result> {

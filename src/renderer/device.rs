@@ -11,7 +11,7 @@ pub struct QueueFamilies {
 }
 
 impl QueueFamilies {
-    pub fn init(
+    pub fn new(
         instance: &ash::Instance,
         physical_device: vk::PhysicalDevice,
     ) -> Result<QueueFamilies, vk::Result> {
@@ -47,12 +47,12 @@ pub struct Device {
 }
 
 impl Device {
-    pub fn init(
+    pub fn new(
         instance: &ash::Instance,
         layer_name_pointers: &Vec<*const i8>,
     ) -> Result<Device, vk::Result> {
         let physical_device = Self::get_physical_device(instance)?;
-        let queue_families = QueueFamilies::init(instance, physical_device)?;
+        let queue_families = QueueFamilies::new(instance, physical_device)?;
         let priorities = [1.0f32];
         let queue_infos = [
             vk::DeviceQueueCreateInfo::builder()

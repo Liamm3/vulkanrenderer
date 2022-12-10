@@ -19,7 +19,7 @@ pub struct Swapchain {
 }
 
 impl Swapchain {
-    pub fn init(
+    pub fn new(
         instance: &ash::Instance,
         surfaces: &Surface,
         device: &Device,

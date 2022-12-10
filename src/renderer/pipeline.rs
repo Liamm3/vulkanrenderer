@@ -6,7 +6,7 @@ pub struct Pipeline {
     layout: vk::PipelineLayout,
 }
 impl Pipeline {
-    pub fn init(
+    pub fn new(
         logical_device: &ash::Device,
         swapchain: &Swapchain,
         renderpass: &vk::RenderPass,
