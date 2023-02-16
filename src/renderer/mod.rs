@@ -65,7 +65,13 @@ impl VulkanRenderer {
             swapchain.surface_format.format
         )?;
         swapchain.create_framebuffer(&device.logical_device, renderpass)?;
-        let pipeline = Pipeline::new(&device.logical_device, &swapchain, &renderpass)?;
+        let pipeline = Pipeline::new(
+            &instance,
+            &device.physical_device,
+            &device.logical_device, 
+            &swapchain, 
+            &renderpass,
+        )?;
         let command_pools = CommandPools::new(&device.logical_device, &device.queue_families)?;
         let commandbuffers =
             CommandPools::create_commandbuffers(&device.logical_device, &command_pools, swapchain.framebuffers.len())?;

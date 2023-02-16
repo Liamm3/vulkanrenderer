@@ -1,12 +1,16 @@
 use ash::vk;
+use gpu_allocator::{vulkan::{Allocator, AllocatorCreateDesc, AllocationCreateDesc}, MemoryLocation};
 use crate::renderer::swapchain::Swapchain;
 
 pub struct Pipeline {
     pub pipeline: vk::Pipeline,
     layout: vk::PipelineLayout,
+    allocator: Allocator,
 }
 impl Pipeline {
     pub fn new(
+        instance: &ash::Instance,
+        physical_device: &vk::PhysicalDevice,
         logical_device: &ash::Device,
         swapchain: &Swapchain,
         renderpass: &vk::RenderPass,
@@ -31,7 +35,42 @@ impl Pipeline {
             .module(fragmentshader_module)
             .name(&mainfunctionname);
         let shader_stages = vec![vertexshader_stage.build(), fragmentshader_stage.build()];
-        let vertex_input_info = vk::PipelineVertexInputStateCreateInfo::builder();
+        let vertex_attribute_descriptions = [vk::VertexInputAttributeDescription {
+            binding: 0,
+            location: 0,
+            offset: 0,
+            format: vk::Format::R32G32B32A32_SFLOAT,
+        }];
+        let vertex_binding_descriptions = [vk::VertexInputBindingDescription {
+            binding: 0,
+            stride: 16,
+            input_rate: vk::VertexInputRate::VERTEX,
+        }];
+        let vertex_input_info = vk::PipelineVertexInputStateCreateInfo::builder()
+            .vertex_attribute_descriptions(&vertex_attribute_descriptions)
+            .vertex_binding_descriptions(&vertex_binding_descriptions);
+        let mut allocator = Allocator::new(&AllocatorCreateDesc {
+            instance: instance.clone(),
+            device: logical_device.clone(),
+            physical_device: physical_device.clone(),
+            debug_settings: Default::default(),
+            buffer_device_address: false,
+        }).unwrap();
+        let vk_info = vk::BufferCreateInfo::builder()
+            .size(16)
+            .usage(vk::BufferUsageFlags::VERTEX_BUFFER);
+        let buffer = unsafe { logical_device.create_buffer(&vk_info, None) }?;
+        let requirements = unsafe { logical_device.get_buffer_memory_requirements(buffer) };
+        let allocation = allocator
+            .allocate(&AllocationCreateDesc { name: "Example allocation",
+                requirements,
+                location: MemoryLocation::CpuToGpu,
+                linear: true, // Buffers are always linear
+            }).unwrap();
+        unsafe { 
+            logical_device.bind_buffer_memory(buffer, allocation.memory(), allocation.offset()).unwrap() 
+        };
+        // allocator.
         let input_assembly_info = vk::PipelineInputAssemblyStateCreateInfo::builder()
             .topology(vk::PrimitiveTopology::POINT_LIST);
         let viewports = [vk::Viewport {
@@ -96,20 +135,25 @@ impl Pipeline {
                 )
                 .expect("A problem with the pipeline creation")
         }[0];
+        allocator.free(allocation).unwrap();
         unsafe {
+            logical_device.destroy_buffer(buffer, None);
             logical_device.destroy_shader_module(fragmentshader_module, None);
             logical_device.destroy_shader_module(vertexshader_module, None);
         }
         Ok(Pipeline { 
             pipeline: graphicspipeline,
-            layout: pipelinelayout 
+            layout: pipelinelayout,
+            allocator,
         })
     }
 
     pub fn cleanup(&self, logical_device: &ash::Device) {
+        self.allocator.free(allocation).unwrap();
         unsafe {
             logical_device.destroy_pipeline(self.pipeline, None);
             logical_device.destroy_pipeline_layout(self.layout, None);
+            logical_device.destroy_buffer(buffer, None);
         }
     }
 }
