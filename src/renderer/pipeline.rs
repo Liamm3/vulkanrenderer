@@ -149,11 +149,9 @@ impl Pipeline {
     }
 
     pub fn cleanup(&self, logical_device: &ash::Device) {
-        self.allocator.free(allocation).unwrap();
         unsafe {
             logical_device.destroy_pipeline(self.pipeline, None);
             logical_device.destroy_pipeline_layout(self.layout, None);
-            logical_device.destroy_buffer(buffer, None);
         }
     }
 }
